@@ -1,0 +1,124 @@
+========================
+django_session_stashable
+========================
+
+Django model mixing that makes it easy to manage a list of objects associated with the current session, principally for the purposes of implementing deferred registration.
+
+Basic use
+=========
+
+----------------------------------------------------------------------------
+from django.db import models
+from django.contrib.auth.models import User
+from django_session_stashable import SessionStashable
+
+class MyModel(models.Model, SessionStashable):
+	created_by = models.ForeignKey(User)
+	name = models.CharField(max_length=255)
+	
+	def __unicode__(self):
+		return self.name
+----------------------------------------------------------------------------
+
+Then you can push an object into the session during a view function:
+
+----------------------------------------------------------------------------
+obj = MyModel(name="name")
+obj.save()
+obj.stash_in_session(request.session)
+----------------------------------------------------------------------------
+
+Note that you must save the object to the database; django_session_stashable records the object's pk.
+
+You can retrieve a list of objects using a class method:
+
+----------------------------------------------------------------------------
+stashed_objects = MyModel.get_stashed_in_session(request.session)
+----------------------------------------------------------------------------
+
+Checking whether a given object is stashed
+==========================================
+
+You can check whether an object is stashed in the current session:
+
+----------------------------------------------------------------------------
+if obj.stashed_in_session(request.session):
+	...
+----------------------------------------------------------------------------
+
+This will often be used in authorization checks; either you only want to check that, or more commonly you combine it with a check against the creating user. Something like the following:
+
+----------------------------------------------------------------------------
+class MyModel(models.Model, SessionStashable):
+	def visible_by_this_request(self, request):
+		if self.created_by==None:
+			return self.stashed_in_session(request.session)
+		else:
+			return self.created_by == request.user
+----------------------------------------------------------------------------
+
+Checking whether any objects are stashed
+========================================
+
+If implementing deferred registration, you may want a prominent warning that there are "unsaved" objects attached to the session, encouraging registration (or login) after your users have created something in the system.
+
+----------------------------------------------------------------------------
+if MyModel.num_stashed_in_session(request.session):
+	...
+----------------------------------------------------------------------------
+
+Most commonly, you'll pass that number to your template to switch on a warning block.
+
+Deferred registration and login
+===============================
+
+While you could write a function to find all the objects in the session and mark them as belonging to the new user, it's easier just to call the supplied class method:
+
+----------------------------------------------------------------------------
+MyModel.reparent_all_my_session_objects(request.session, user)
+----------------------------------------------------------------------------
+
+If you want to do more 
+
+Note that this assumes that you mark object creation using a created_by field, as in the previous example. I always do this, for consistency, but if you prefer to call it something else, you can do the work yourself using other provided functions. Say you called the field creator instead:
+
+----------------------------------------------------------------------------
+for obj in MyModel.get_stashed_in_session(request.session):
+	obj.creator = user
+	obj.save()
+MyModel.clear_stashed_objects(request.session)
+----------------------------------------------------------------------------
+
+Internals
+=========
+
+We store against the session, by default using the key "object_stash". If you don't want to use this, or you want to stash objects of different types against the session, you can change the session_variable setting on your class:
+
+----------------------------------------------------------------------------
+class MyModel(models.Model, SessionStashable):
+	session_variable = 'mymodel_stash'
+	
+	created_by = models.ForeignKey(User)
+	name = models.CharField(max_length=255)
+	
+class MySecondModel(models.Model, SessionStashable):
+	session_variable = 'mysecondmodel_stash'
+	
+	created_by = models.ForeignKey(User)
+	name = models.CharField(max_length=255)
+----------------------------------------------------------------------------
+
+We assume the field that stores the creator is called created_by, but you can change this by setting the creator_field on your class:
+
+----------------------------------------------------------------------------
+class MyModel(models.Model, SessionStashable):
+	session_variable = 'mymodel_stash'
+	creator_field = 'creator'
+	
+	creator = models.ForeignKey(User)
+	name = models.CharField(max_length=255)
+----------------------------------------------------------------------------
+
+(These two settings would probably benefit from being turned into Meta attributes or similar, but for now I can't be bothered to figure out the nicest approach.)
+
+James Aylett <http://tartarus.org/james/computers/django/>
