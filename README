@@ -6,6 +6,8 @@ Django model mixin that makes it easy to manage a list of objects associated wit
 
 I've written a more detailed walkthrough that may be of interest: <http://tartarus.org/james/diary/2009/07/24/implementing-deferred-registration-with-django>.
 
+This was derived from code I wrote at a <http://devfort.com/>.
+
 Basic use
 =========
 
