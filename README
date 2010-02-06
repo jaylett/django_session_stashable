@@ -93,6 +93,24 @@ for obj in MyModel.get_stashed_in_session(request.session):
 MyModel.clear_stashed_objects(request.session)
 ----------------------------------------------------------------------------
 
+Getting all objects, whether stashed or owned by a real user
+============================================================
+
+As a convenience, there is a class method get_objects_for_request which will return either all objects owned by the authenticated user, or all objects stashed in the session, in that order:
+
+----------------------------------------------------------------------------
+def list_view(request):
+	return render(
+		request,
+		'template.html',
+		{
+			'objects': MyModel.get_objects_for_request(request),
+		},
+	)
+----------------------------------------------------------------------------
+
+There is an assumption that MyModel.objects.filter(...) is the right way to go here; if that isn't true for your app, the code isn't complicated: this simply saves time.
+
 Internals
 =========
 

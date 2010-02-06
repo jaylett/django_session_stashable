@@ -82,3 +82,15 @@ class SessionStashable:
             return cls.objects.in_bulk(session[cls.session_variable]).values()
         else:
             return []
+
+    @classmethod
+    def get_objects_for_request(cls, request):
+        "Get all the objects either stashed in my session or owned by the user."
+        if request.user.is_authenticated():
+            return cls.objects.filter(
+                ** {
+                    cls.creator_field: request.user,
+                }
+            )
+        else:
+            return cls.get_stashed_in_session(request.session)
