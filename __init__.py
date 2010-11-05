@@ -22,7 +22,11 @@ class SessionStashable:
     "Mixin this class to provide useful instance and class methods for stashing unsaved whatevers in the session."
     session_variable = 'object_stash' # if using this more than once, set explicitly on each class
     creator_field = 'created_by' # if you don't like this name, set explicitly on your derived class
-    
+
+    # Setting this to a string will add a context variable with that name
+    # containing a count of unstashed models of this type.
+    context_count_name = None
+
     def stash_in_session(self, session):
         "Stash this object in the current session."
         if getattr(self, self.creator_field)!=None:
@@ -94,3 +98,22 @@ class SessionStashable:
             )
         else:
             return cls.get_stashed_in_session(request.session)
+
+from django.db.models.loading import cache
+
+def add_counts_to_context(request):
+    """A context processor which adds counts of stashed objects
+    of models which inherit from SessionStashable to RequestContext.
+
+    To make a make a count appear for a particular model, set the
+    class attribute context_count_name to an appropriate string
+    to name its context variable, and enable this context processor
+    in settings.py.
+    """
+    extra_context = {}
+    for app in cache.get_apps():
+        for model in cache.get_models(app):
+            if issubclass(model, SessionStashable) and model.context_count_name:
+                extra_context[model.context_count_name] = model.num_stashed_in_session(request.session)
+
+    return extra_context
