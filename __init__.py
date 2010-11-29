@@ -79,9 +79,9 @@ class SessionStashable:
         "Get all the objects stashed in my session."
         #print "Getting all %s stashed in session" % cls
         if session.has_key(cls.session_variable):
-            return cls.objects.in_bulk(session[cls.session_variable]).values()
+            return cls.objects.filter(id__in=session[cls.session_variable])
         else:
-            return []
+            return cls.objects.none()
 
     @classmethod
     def get_objects_for_request(cls, request):
