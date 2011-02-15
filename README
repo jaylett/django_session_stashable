@@ -71,7 +71,7 @@ if MyModel.num_stashed_in_session(request.session):
 	...
 ----------------------------------------------------------------------------
 
-Most commonly, you'll pass that number to your template to switch on a warning block.
+Most commonly, you'll pass that number to your template to switch on a warning block. To make this easy, there's a context processor you can pull in, `django_session_stashable.stashed_object_counts`; you'll need to set `context_count_name` on each stashable model, and the count will appear in the context as that name.
 
 Deferred registration and login
 ===============================
