@@ -29,9 +29,9 @@ class SessionStashable:
             return # nothing to do
         if not session.has_key(self.session_variable):
             session[self.session_variable] = []
-        if not self.pk in session[self.session_variable]:
+        if self.pk not in session[self.session_variable]:
             session[self.session_variable].append(self.pk)
-        session.modified = True
+            session.modified = True
         #print "stashed %s in session" % self
         
     def stashed_in_session(self, session):
