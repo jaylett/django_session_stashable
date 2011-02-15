@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-class SessionStashable:
+class SessionStashable(object):
     "Mixin this class to provide useful instance and class methods for stashing unsaved whatevers in the session."
     session_variable = 'object_stash' # if using this more than once, set explicitly on each class
     creator_field = 'created_by' # if you don't like this name, set explicitly on your derived class
