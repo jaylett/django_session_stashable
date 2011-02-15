@@ -102,7 +102,7 @@ class SessionStashable(object):
 
 from django.db.models.loading import cache
 
-def add_counts_to_context(request):
+def stashed_object_counts(request):
     """A context processor which adds counts of stashed objects
     of models which inherit from SessionStashable to RequestContext.
 
