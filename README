@@ -34,7 +34,7 @@ obj.stash_in_session(request.session)
 
 Note that you must save the object to the database; django_session_stashable records the object's pk.
 
-You can retrieve a list of objects using a class method:
+You can retrieve a queryset of objects using a class method:
 
 ----------------------------------------------------------------------------
 stashed_objects = MyModel.get_stashed_in_session(request.session)

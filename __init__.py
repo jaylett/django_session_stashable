@@ -57,17 +57,8 @@ class SessionStashable(object):
     @classmethod
     def reparent_all_my_session_objects(cls, session, user):
         "Go over the objects stashed in session and set user as their creator_field. Then clear the sessions store."
-        if session.has_key(cls.session_variable):
-            for pk in session[cls.session_variable]:
-                #print "Reparenting %i in %s" % (pk, cls,)
-                try:
-                    obj = cls.objects.get(pk=pk)
-                    setattr(obj, obj.creator_field, user)
-                    obj.save()
-                except cls.DoesNotExist:
-                    pass
-
-            del session[cls.session_variable]
+        cls.get_stashed_in_session(session).update(**{cls.creator_field: user})
+        cls.clear_stashed_objects(session)
 
     @classmethod
     def num_stashed_in_session(cls, session):
@@ -84,9 +75,9 @@ class SessionStashable(object):
         "Get all the objects stashed in my session."
         #print "Getting all %s stashed in session" % cls
         if session.has_key(cls.session_variable):
-            return cls.objects.in_bulk(session[cls.session_variable]).values()
+            return cls.objects.filter(id__in=session[cls.session_variable])
         else:
-            return []
+            return cls.objects.none()
 
     @classmethod
     def get_objects_for_request(cls, request):
