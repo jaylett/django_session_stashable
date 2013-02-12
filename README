@@ -82,15 +82,15 @@ While you could write a function to find all the objects in the session and mark
 MyModel.reparent_all_my_session_objects(request.session, user)
 ----------------------------------------------------------------------------
 
-If you want to do more 
+Note that this assumes that you mark object creation using a created_by field, as in the previous example, or you have set the `creator_field` on your class (see example below).
 
-Note that this assumes that you mark object creation using a created_by field, as in the previous example. I always do this, for consistency, but if you prefer to call it something else, you can do the work yourself using other provided functions. Say you called the field creator instead:
+The `reparent_all_session_objects` function is provided as a convenience; connect it to the `django.contrib.auth.singals.user_logged_in` signal to reparent all stashed objects for all models that inherit from SessionStashable when a user logs in:
 
 ----------------------------------------------------------------------------
-for obj in MyModel.get_stashed_in_session(request.session):
-	obj.creator = user
-	obj.save()
-MyModel.clear_stashed_objects(request.session)
+from django.contrib import auth
+from django_session_stashable import reparent_all_session_objects
+
+auth.signals.user_logged_in.connect(reparent_all_session_objects)
 ----------------------------------------------------------------------------
 
 Getting all objects, whether stashed or owned by a real user

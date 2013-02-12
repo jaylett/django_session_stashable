@@ -93,6 +93,12 @@ class SessionStashable(object):
 
 from django.db.models.loading import cache
 
+def _stashable_models():
+    for app in cache.get_apps():
+        for model in cache.get_models(app):
+            if issubclass(model, SessionStashable):
+                yield model
+
 def stashed_object_counts(request):
     """A context processor which adds counts of stashed objects
     of models which inherit from SessionStashable to RequestContext.
@@ -103,9 +109,18 @@ def stashed_object_counts(request):
     in settings.py.
     """
     extra_context = {}
-    for app in cache.get_apps():
-        for model in cache.get_models(app):
-            if issubclass(model, SessionStashable) and model.context_count_name:
-                extra_context[model.context_count_name] = model.num_stashed_in_session(request.session)
+    for model in _stashable_models():
+        if model.context_count_name:
+            extra_context[model.context_count_name] = model.num_stashed_in_session(request.session)
 
     return extra_context
+
+def reparent_all_session_objects(sender, request, user, **kwargs):
+    """Reparents the session objects for all models that inherit from
+    SessionStashable.
+
+    Can be connected to the `django.contrib.auth.signals.user_logged_in`
+    signal.
+    """
+    for model in _stashable_models():
+        model.reparent_all_my_session_objects(request.session, user)
