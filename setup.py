@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='django-session-stashable',
-      version='1.0',
+      version='1.1',
       description='Django model mixin that makes it easy to manage a list of '
                   'objects associated with the current session.',
       author='James Aylett',
