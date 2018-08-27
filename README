@@ -17,7 +17,7 @@ from django.contrib.auth.models import User
 from django_session_stashable import SessionStashable
 
 class MyModel(models.Model, SessionStashable):
-	created_by = models.ForeignKey(User)
+	created_by = models.ForeignKey(User, null=True)
 	name = models.CharField(max_length=255)
 	
 	def __unicode__(self):
